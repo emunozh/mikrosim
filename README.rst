@@ -446,11 +446,9 @@ Make some nice plots with the result
     abline(h=mean(heat, na.rm=TRUE), col='red', lw=3)
     dev.off()
 
-.. figure:: HeatExpenditure.jpeg
+.. image:: HeatExpenditure.jpeg
     :width: 1200px
     :height: 1200px
-
-    **Figure :** Sorted heat expenditures of German municipalities
 
 .. code:: R
     :linenos:
@@ -464,6 +462,7 @@ Make some nice plots with the result
     :height: 1200px
     :align: center
 
+    **Figure :** Sorted heat expenditures of German municipalities
     **Figure :** Histogram of the heat expenditure for the German
     municipalities
 
