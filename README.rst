@@ -434,8 +434,7 @@ Save the result to a csv file
 Make some nice plots with the result
 ------------------------------------
 
-.. code:: R
-    :linenos:
+.. code::
 
     heat <- as.numeric(Result$heat)
     jpeg(filename="HeatExpenditure.jpeg", width=600, height=600)
@@ -446,7 +445,7 @@ Make some nice plots with the result
     abline(h=mean(heat, na.rm=TRUE), col='red', lw=3)
     dev.off()
 
-.. image:: ./Doc/HeatExpenditure.jpeg
+.. image:: Doc/HeatExpenditure.jpeg
     :width: 1200px
     :height: 1200px
 
@@ -457,7 +456,7 @@ Make some nice plots with the result
     hist(heat, main="Histogram of heat expediture in German municipalities")
     dev.off()
 
-.. figure:: ./Doc/HeatExpenditureHist.jpeg
+.. figure:: Doc/HeatExpenditureHist.jpeg
     :width: 1200px
     :height: 1200px
     :align: center
