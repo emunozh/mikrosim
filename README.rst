@@ -608,7 +608,7 @@ simulated municipalities.
     abline(h=mean(heat, na.rm=TRUE), col='red', lw=3)
     dev.off()
 
-.. figure:: ./Doc/HeatExpenditure.jpeg
+.. figure:: https://gitlab.com/emunozh/mikrosim/blob/master/Doc/HeatExpenditure.jpeg
     :width: 1200px
     :height: 1200px
 
@@ -616,7 +616,7 @@ simulated municipalities.
 
 In the next graph I create an histogram on the estimated heat expenditure. 
 
-::
+.. code:: python
 
     jpeg(filename="HeatExpenditureHist.jpeg", width=600, height=600)
     hist(heat, main="Histogram of heat expediture in German municipalities")
