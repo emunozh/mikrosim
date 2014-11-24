@@ -74,10 +74,8 @@ you need to edit the contents of the 'mikrosim.R' script accordingly.
 Alternative to the download links provided below the entire folder structure
 can be 'cloned' from a gitlab [#]_ repository::
 
-    # ssh
-    git clone git@gitlab.com:emunozh/mikrosim.git
-    # or http
-    git clone https://gitlab.com/emunozh/mikrosim.git
+    # clone the entire repository
+    git clone https://github.com/emunozh/mikrosim.git
 
 
 GREGWT [Required]
