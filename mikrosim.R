@@ -127,8 +127,6 @@ gem.fam <- gem.fam[substr(gem.fam$X,1,AGS.length)==AGS.code, ]
 gem.hhs <- gem.hhs[substr(gem.hhs$X,1,AGS.length)==AGS.code, ]
 
 # Remove unwanted columns from the data
-# but save the total population first
-population <- gem.alt$Total
 # age
 drop <- c("Total")
 gem.alt <- gem.alt[,!(names(gem.alt) %in% drop)]

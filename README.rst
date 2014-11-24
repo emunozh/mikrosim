@@ -49,7 +49,7 @@ In order to run this simulation you need:
 
    The micro census survey can be downloaded from the research data center [#]_
    also maintain by the Federal Statistics Bureau of Germany. This data set can
-   be downloaded in different file formats, we will use the `*.csv` file
+   be downloaded in different file formats, I will use the `*.csv` file
    format.
 
 4. The Federal Statistics Bureau also provides a shape file `*.shp` for the
@@ -71,11 +71,46 @@ that all data is stores in a sub folder (Relative to the main script
 'mikrosim.R') called 'Data'. If you have (or want) a different folder structure
 you need to edit the contents of the 'mikrosim.R' script accordingly. 
 
+Alternative to the download links provided below the entire folder structure
+can be 'cloned' from a gitlab [#]_ repository::
+
+    # ssh
+    git clone git@gitlab.com:emunozh/mikrosim.git
+    # or http
+    git clone https://gitlab.com/emunozh/mikrosim.git
+
+
+GREGWT [Required]
+    https://www.dropbox.com/s/l3n0gzl7s4a2zpy/GREGWT_1.4.tar.gz?dl=0
+
+GREGWT-manual.pdf [Optional]
+    https://www.dropbox.com/s/w938dg0jcgae2cl/GREGWT-manual.pdf?dl=0
+
+mikrosim.R [Required]
+    https://www.dropbox.com/s/hepy3xr8qdnbotl/mikrosim.R?dl=0
+
+Data [Required]
+    https://www.dropbox.com/s/ch62zxnmel8zwa4/Data.zip?dl=0
+
+MikrosimDoc [This document]
+    https://www.dropbox.com/s/ul3w1ge0unh5sun/MikrosimDoc.pdf?dl=0
+
+Steps [Optional]
+    https://www.dropbox.com/s/v6gglw5y2lwdsjo/Steps.zip?dl=0
+
+Doc [Optional]
+    https://www.dropbox.com/s/2e03f9bvwy6z9vp/Doc.zip?dl=0
+
+Extra [Optional]
+    https://www.dropbox.com/s/1uie7iaicvpticd/Extra.zip?dl=0
+
 Assumed folder structure of the downloaded zip files::
 
     ./--> mikrosim.R [Required]
-    ./--> README.pdf [This file] 
-    ./--> README.rst
+    ./--> GREGWT_1.4.tar.gz [Required]
+    ./--> GREGWT-manual.pdf [Optional]
+    ./--> MikrosimDoc.pdf [This file] 
+    ./--> MikrosimDoc.rst [Optional]
 
     ./Data/ [Required]
         |
@@ -130,6 +165,24 @@ Assumed folder structure of the downloaded zip files::
 
 Data Stucture of the Census 2011 and the Micro census 2002
 ==========================================================
+
+The following section briefly describes the data structure of both datasets:
+the Census 2011 and the Micro Census Survey 2002. Both datasets have to be
+modify so that I can run a simulation.
+
+The following tables compare the values or categories of the both data sets and
+makes a first approach to homogenize the data structure of both data sets. 
+
+The modification of the data format is implemented in the R language and is
+part of the 'mikrosim.R' script. This process is described below under:
+`Rearrange the data to fit the Census`_.
+
+For this simulation I use three constrains:
+(1) Age Distribution, with 11 classes; 
+(2) Marital Status, with 4 classes; and
+(3) Household Size, with 6 classes.
+In order to run the simulation I have to prepare the data for each one of this
+constrains. 
 
 Age
 ---
@@ -206,13 +259,62 @@ Household size
 Running the Simulation
 ======================
 
+In the following section I will make a short description of the require
+simulation steps and comment the most important lines of code used in the
+corresponding step. I have separated the steps into 9 steps:
+
+1. Loading the micro census survey data, and selecting the needed columns
+
+2. Rearranging the micro census to fit the census data structure
+
+3. Loading the census data, and merging them into a single data frame
+
+4. Select the region I want to simulate
+
+5. Remove some unwanted records from the data sets
+
+6. Prepare the data using for the simulation with the provided function
+   'prepareData'
+
+7. Compute the new weights for each area
+
+8. Save the simulation result into a csv file
+
+9. Make some plots with the results
+
 Load the micro census survey data
 ---------------------------------
+
+The micro census data is a big file with a lot of information, for this
+simulation I require just a tiny fraction of this data. The easiest way to do
+this is to define the columns I want to keep (code line 4-8) and create a new
+data frame just with this columns. The column names in this data frame are
+coded. The variables codes are provided in the documentation of this file. If
+you download the zip file called 'Doc.zip' you will find this documentation
+under './Doc/fdz_mikrozensus_cf_2002_schluesselverzeichnis.pdf' 
+
+Here I also define a data frame with the two values I want to use for the
+estimation of heat expenditure (ef464 and ef466). This two values represent the
+'cold operating cost' and the 'warm operating cost' of the individuals in this
+data set. The 'cold operating cost' is the cost to operate a dwelling unit
+without heating and the 'warm operating cost' represents the 'total' operating
+cost of the dwelling unit, this means including heating of the dwelling unit.
+We can calculate the heating cost by subtracting the 'cold' from the 'warm
+operating cost' (code line 20). 
+
+In this data set the codes: 8, 9998 and 9999 have a special meaning. We need to
+change this values, otherwise R will interpret them as numerical values (code
+lines 14-19). E.g: the code 9998 represents an operating cost between 0401 and
+9998 EUR. For this example I simple attribute the value 450 EUR to all cases
+with an operating cost between that range. 
+
+Finally I take only complete observations, this is important as the original
+data set contains many gaps regarding the heat expenditure.  
 
 .. code:: R
     :linenos:
 
-    mikro.raw = read.csv("./DATA/Survey/mz02_cf.csv", sep=";")
+    mikro.raw = read.csv("./Data/Survey/mz02_cf.csv", sep=";")
     # columns to keep for simulation:
     # age, marital status, household size, weights
     keep.simulation = c(
@@ -236,8 +338,22 @@ Load the micro census survey data
     mikro.simulation <- mikro.simulation[complete.cases(mikro.result),]
     mikro.result <- mikro.result[complete.cases(mikro.result)]
 
-Rearrange the data to fit the Census data
------------------------------------------
+Rearrange the data to fit the Census
+------------------------------------
+
+In this step I implement in code the data homogenization tables presented above
+under:
+`Data Stucture of the Census 2011 and the Micro census 2002`_.
+
+This process can be described in two steps:
+
+1. I create an empty vector (e.g: code line 3) for each class
+
+2. I attribute a 1 to record complying with a boolean query (e.g:
+   mikro.simulation$ef30 < 3, in code line 9).
+
+Finally I merge all vectors into a single data frame, I will use this data
+frame for the simulation latter on.
 
 .. code:: R
     :linenos:
@@ -283,17 +399,27 @@ Rearrange the data to fit the Census data
 Load the census data
 --------------------
 
+I have loaded and arrange the micro census survey. Now I need to load the data
+from the census 2011. I have prepare three csv files, one for each constrain.
+This data files can be downloaded directly in this format 
+(see `Annex: Scripts to fetch the required data from the internet`_
+for the developed script to download this data)
+
+It is important to notice that I load the first column explicitly as a 
+character data type (code line 3). This is important because some of the area
+codes have a leading zero.
+
 .. code:: R
     :linenos:
 
     nan.strings = c('nan', '.')
-    gem.alt = read.csv("./DATA/Gemeinden/ALTER_AF-all.csv",
+    gem.alt = read.csv("./Data/Gemeinden/ALTER_AF-all.csv",
         colClasses=c("character",rep("numeric",6)),
         na.strings = nan.strings)
-    gem.fam = read.csv("./DATA/Gemeinden/FAMSTND_KURZ-all.csv",
+    gem.fam = read.csv("./Data/Gemeinden/FAMSTND_KURZ-all.csv",
         colClasses=c("character",rep("numeric",6)),
         na.strings = nan.strings)
-    gem.hhs = read.csv("./DATA/Gemeinden/HHGROESS_KLASS-all.csv",
+    gem.hhs = read.csv("./Data/Gemeinden/HHGROESS_KLASS-all.csv",
         colClasses=c("character",rep("numeric",7)),
         na.strings = nan.strings)
 
@@ -357,11 +483,14 @@ list of the state codes).
 Remove unwanted columns from the data
 -------------------------------------
 
+The code below simply removes some columns (code line 2-9) that I don't need
+to run the simulation, merge all data frames into a single data frame (code
+line 12-13) and creates a data frame to store the simulation result (code line
+20-22). 
+
 .. code:: R
     :linenos:
 
-    # but save the total population first
-    population <- gem.alt$Total
     # age
     drop <- c("Total")
     gem.alt <- gem.alt[,!(names(gem.alt) %in% drop)]
@@ -388,6 +517,19 @@ Remove unwanted columns from the data
 Prepare data for simulation
 ---------------------------
 
+In this step I make use of the GREGWT library for the first time. In order to
+run the simulation I first need to 'prepare' the data for the simulation. In
+order to do this I use the provided function 'prepareData'. This function
+checks for empty columns or columns with only ones, checks for collinearity
+between columns, and reformats the data into matrix data types.
+
+In the latest version of the GREGWT library I took this function out of the
+main function ('GREGWT') to improve computational time as the 'GREGWT' function
+is implemented in a for loop. This change means adding an extra step to the
+simulation work flow but decreases redundancy in the overall process, as
+otherwise I would prepare the same data in the same fashion on each for loop
+iteration. 
+
 .. code:: R
     :linenos:
 
@@ -396,26 +538,47 @@ Prepare data for simulation
     Simulation.Data <- prepareData(mikro.input, Tx.s)
     mikro.input.s <- Simulation.Data$X
     Tx.s <- Simulation.Data$Tx
-    X.in <- Simulation.Data$X.in
 
 Get the new weights for each area
 ---------------------------------
+
+Finally I can run the microsimulation. For this example I will calculate the
+average heat expenditure for each municipality in the selected state.
+
+First I need to construct a for loop, iterating to all desire municipalities
+(code line 2). 
+
+The 'GREGWT' function needs 3 input variables for the estimation of new
+weights (code line 8). It needs:
+
+1. A matrix with a population sample (mikro.input.s);
+
+2. The initial weights for this sample (dx); and
+
+3. The 'true' population totals to which I aim to re weight the sample to.
+
+Additionally I define as a restriction the bounds for the new weights. The
+first value describes the minimum possible weight and the second value the
+maximum weight an individual can take. With the bounds restriction equal to
+`c(0,Inf)` I restrict the simulation to positive weights.  
+
+I access the new weights as 'fw <- Weights$Final.Weights' (code line 9)
+
+With this new weights I estimate the average heat expenditure for the
+municipality (code line 11) and store the result in the 'Result' data frame
+(code line 12). 
 
 .. code:: R
     :linenos:
 
     # loop through all areas 
     for(i in seq(1, areas.number)){
-
         # Create a vector with the area totals
         Tx <- Tx.s[i,]
-        names(Tx) <- names(mikro.input.s)
-
         # Store the area code
         acode <- area.code[i]
-
         # Get new weights with GREGWT
-        Weights = GREGWT(mikro.input.s, dx, Tx, bounds=c(0,Inf), X.input=X.in)
+        Weights = GREGWT(mikro.input.s, dx, Tx, bounds=c(0,Inf))
         fw <- Weights$Final.Weights
         # Compute average heat expenditure for this area
         heat.expenditure <- sum(mikro.result * fw / sum(fw), na.rm=TRUE)
@@ -425,6 +588,9 @@ Get the new weights for each area
 Save the result to a csv file
 -----------------------------
 
+Finally I save the result as a csv file. I will use this csv file to show the
+result in a map through a GIS platform. 
+
 .. code:: R
     :linenos:
 
@@ -433,6 +599,11 @@ Save the result to a csv file
 
 Make some nice plots with the result
 ------------------------------------
+
+With the estimated result I can make some nice plots.
+
+In the first graph I simply plot the sorted heat expenditure values for all
+simulated municipalities. 
 
 .. code:: R
     :linenos:
@@ -446,9 +617,13 @@ Make some nice plots with the result
     abline(h=mean(heat, na.rm=TRUE), col='red', lw=3)
     dev.off()
 
-.. image:: ./Doc/HeatExpenditure.jpeg
+.. figure:: ./Doc/HeatExpenditure.jpeg
     :width: 1200px
     :height: 1200px
+
+    **Figure 1:** Sorted heat expenditures of German municipalities
+
+In the next graph I create an histogram on the estimated heat expenditure. 
 
 .. code:: R
     :linenos:
@@ -462,78 +637,93 @@ Make some nice plots with the result
     :height: 1200px
     :align: center
 
-    **Figure :** Sorted heat expenditures of German municipalities
-    **Figure :** Histogram of the heat expenditure for the German
+    **Figure 2:** Histogram of the heat expenditure for the German
     municipalities
 
 Visualizing the results in QGIS
 ===============================
 
-.. figure:: Screenshot1.png
+In this section I will briefly explain how to visualize the result in a map. In
+order to do this I took some screen shoots of my computer, this screen shots
+should be self explanatory. I will simple write some comments on relevant parts
+of the process. 
+
+The first step is to load the data into the QGIS workspace. QGIS will interpret
+this as layer. I load the shapefile `VG250_Gemeinden.shp` and the csv file from
+the simulation, in this case `SimulationResult-de`. In order to load data to
+the workspace I simply search the file in the file explores and double click
+the desire data set. 
+
+.. figure:: ./Doc/Screenshot1.png
     :align: center
 
-    **Figure :** Screenshot 
+    **Figure 3:** QGIS with loaded data as layers 
 
-.. figure:: Screenshot1-1.png
-    :width: 1200px
+Once I have loaded the shapefile and the csv file I can 'join' them. I join
+them using the municipalities area codes (area and RS_ALT).
+
+.. figure:: ./Doc/Screenshot2.png
     :align: center
 
-    **Figure :** Screenshot 
+    **Figure 4:** Joining the csv file to the spatial data
 
-.. figure:: Screenshot2.png
+Because I maintain the area codes as character data types, I have to transform
+the data to a numerical data type in order to visualize it. This is easily
+achieved with the 'toreal()' function. 
+
+.. figure:: ./Doc/Screenshot3.png
     :align: center
 
-    **Figure :** Screenshot 
+    **Figure 5:** Convert the string values to numerical data 
 
-.. figure:: Screenshot2-1.png
-    :width: 1200px
+With a numerical field containing the simulation result now I can create a map
+using a predefine color scale. QGIS has different method to compute the breaks
+in the data, the 'Natural Breaks (jenks)' method is a very common for the
+visualization of this type of data. 
+
+.. figure:: ./Doc/Screenshot4.png
     :align: center
 
-    **Figure :** Screenshot 
+    **Figure 6:** Define the visualization style 
 
-.. figure:: Screenshot3.png
+The result should look something like this. Here I add a third layer in the
+background to visualize missing values (dark grey).
+
+.. figure:: ./Doc/Screenshot5.png
     :align: center
 
-    **Figure :** Screenshot 
+    **Figure 7:** Simulation result on a map 
 
-.. figure:: Screenshot3-1.png
-    :width: 1200px
+In this step I add another layer on top of our simulation representing
+populated areas.
+
+.. figure:: ./Doc/Screenshot6.png
     :align: center
 
-    **Figure :** Screenshot
-
-.. figure:: Screenshot4.png
-    :align: center
-
-    **Figure :** Screenshot 
-
-.. figure:: Screenshot5.png
-    :align: center
-
-    **Figure :** Screenshot 
-
-.. figure:: Screenshot6.png
-    :align: center
-
-    **Figure :** Screenshot 
+    **Figure 8:** Adding more layers o the map 
 
 
 Simulation Results
 ==================
 
-.. figure:: map-de.jpeg
+You need to know a little bit of German history to interpret the result...
+
+.. figure:: ./Doc/map-de.jpeg
     :align: center
 
-    **Figure 1:** Map showing the simulation result for all German states.
+    **Figure 9:** Map showing the simulation result for all German states.
 
-.. figure:: map.jpeg
+The influence of dense urban areas is evident at a lower scale. The cost of
+heat distribution decreases as heat demand density raises.
+
+.. figure:: ./Doc/map.jpeg
     :align: center
 
-    **Figure 1:** Map showing the result from our simulation for the state of
+    **Figure 10:** Map showing the result from our simulation for the state of
     North Rhine-Westphalia.
 
 Annex: Scripts to fetch the required data from the internet
-==============================================================
+===========================================================
 
 For the purpose of this workshop I prepare a zip file containing all the
 required data to run the simulation.
@@ -576,7 +766,7 @@ them on a single file.
         # remove blank spaces from the url
         to_download = to_download.replace(" ", "")
         # create a name for the csv file
-        download_name = "./DATA/Gemeinden/{}-{}.csv".format(constrain, num)
+        download_name = "./Data/Gemeinden/{}-{}.csv".format(constrain, num)
         # fetch the csv file
         url.urlretrieve(to_download, filename=download_name)
         # wait 1 second to get the next file 
@@ -586,7 +776,7 @@ them on a single file.
 This piece of code reads the area codes and selects only the desire codes
 (Gemeinden). The first line of code defines which file to open, the separator
 character, the boolean value `None` to tell python that the file does not have
-any header and finally define the name of the imported columns so that we can
+any header and finally define the name of the imported columns so that I can
 access the data using this names. The second line select only areas
 corresponding to the codes of the desire level (Gemeinden). Code lines 3 to 6
 modify the code for some areas, these areas are both "Gemeinde" and "State" and
@@ -594,7 +784,7 @@ therefor have many codes representing the same area. This is important for the
 latter visualization because the QGIS will not be able to identify this area
 codes.
 
-.. code-block:: python
+.. code:: python
     :linenos:
 
     _ags = pd.read_csv("./AGS.csv", sep="\t", header=None, names=['ags', 'name'])
@@ -614,11 +804,12 @@ command describe how to read the csv file. It describes:
 3. Number of header lines
 4. Character defining **NA** values
 5. Number of lines at the end of the file
-6. Engine to be used to read the file. Normally we will use a C engine, as this
+6. Engine to be used to read the file. Normally I will use the default C
+   engine, as this
    is faster, unfortunately the implementation of this engine doesn't have a
    notion of footer lines 
-7. Which column should we use as index
-8. Encoding of the file, important if we have a file with non standard
+7. Which column should I use as index
+8. Encoding of the file, important if I have a file with non standard
    characters.
 
 The rest of this lines remove unwanted characters from the records. Some record
@@ -659,3 +850,4 @@ numerical characters from the area code in order to work with them.
 .. [#] https://www.zensus2011.de
 .. [#] http://www.forschungsdatenzentrum.de
 .. [#] http://qgis.org
+.. [#] https://gitlab.com/emunozh/mikrosim
