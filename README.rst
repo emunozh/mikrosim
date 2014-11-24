@@ -311,8 +311,7 @@ with an operating cost between that range.
 Finally I take only complete observations, this is important as the original
 data set contains many gaps regarding the heat expenditure.  
 
-.. code:: R
-    :linenos:
+::
 
     mikro.raw = read.csv("./Data/Survey/mz02_cf.csv", sep=";")
     # columns to keep for simulation:
@@ -355,8 +354,7 @@ This process can be described in two steps:
 Finally I merge all vectors into a single data frame, I will use this data
 frame for the simulation latter on.
 
-.. code:: R
-    :linenos:
+::
 
     # Age
     # Create empy vectors
@@ -409,8 +407,7 @@ It is important to notice that I load the first column explicitly as a
 character data type (code line 3). This is important because some of the area
 codes have a leading zero.
 
-.. code:: R
-    :linenos:
+::
 
     nan.strings = c('nan', '.')
     gem.alt = read.csv("./Data/Gemeinden/ALTER_AF-all.csv",
@@ -431,8 +428,7 @@ first n letters of an area code. In this case the first two letters represent
 the code for the German federal states (see table state_ below for a complete
 list of the state codes). 
 
-.. code:: R
-    :linenos:
+::
 
     # Select a single federal state (eg: 05 is the code for Nordrhein-Westfalen)
     AGS.code = "05"
@@ -488,8 +484,7 @@ to run the simulation, merge all data frames into a single data frame (code
 line 12-13) and creates a data frame to store the simulation result (code line
 20-22). 
 
-.. code:: R
-    :linenos:
+::
 
     # age
     drop <- c("Total")
@@ -530,8 +525,7 @@ simulation work flow but decreases redundancy in the overall process, as
 otherwise I would prepare the same data in the same fashion on each for loop
 iteration. 
 
-.. code:: R
-    :linenos:
+::
 
     area.code <- gem.input[, 1]
     Tx.s <- gem.input[, 2:dim(gem.input)[2]]
@@ -568,8 +562,7 @@ With this new weights I estimate the average heat expenditure for the
 municipality (code line 11) and store the result in the 'Result' data frame
 (code line 12). 
 
-.. code:: R
-    :linenos:
+::
 
     # loop through all areas 
     for(i in seq(1, areas.number)){
@@ -591,8 +584,7 @@ Save the result to a csv file
 Finally I save the result as a csv file. I will use this csv file to show the
 result in a map through a GIS platform. 
 
-.. code:: R
-    :linenos:
+::
 
     Result <- Result[Result$heat > 0, ]
     write.csv(Result, file="SimulationResult.csv")
@@ -605,8 +597,7 @@ With the estimated result I can make some nice plots.
 In the first graph I simply plot the sorted heat expenditure values for all
 simulated municipalities. 
 
-.. code:: R
-    :linenos:
+::
 
     heat <- as.numeric(Result$heat)
     jpeg(filename="HeatExpenditure.jpeg", width=600, height=600)
@@ -625,8 +616,7 @@ simulated municipalities.
 
 In the next graph I create an histogram on the estimated heat expenditure. 
 
-.. code:: R
-    :linenos:
+::
 
     jpeg(filename="HeatExpenditureHist.jpeg", width=600, height=600)
     hist(heat, main="Histogram of heat expediture in German municipalities")
@@ -754,8 +744,7 @@ queering a maximum of 100 areas at the same time and therefor I have to pass
 100 area codes at a time. I will download each csv file and latter on combine
 them on a single file.  
 
-.. code:: python
-    :linenos:
+::
 
     # divide the area codes in chunks of 100 items
     dat_AGS = chunks(AGS, 100)
@@ -784,8 +773,7 @@ therefor have many codes representing the same area. This is important for the
 latter visualization because the QGIS will not be able to identify this area
 codes.
 
-.. code:: python
-    :linenos:
+::
 
     _ags = pd.read_csv("./AGS.csv", sep="\t", header=None, names=['ags', 'name'])
     _clean_ags = _ags[_ags['ags'] >= 10000000000]
@@ -819,8 +807,7 @@ contain the numerical code but also the name of the area, I removed all non
 numerical characters from the area code in order to work with them. 
 
 
-.. code:: python
-    :linenos:
+::
 
     # read the csv file
     data = pd.read_csv(
