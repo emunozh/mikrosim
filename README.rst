@@ -718,9 +718,6 @@ required data to run the simulation.
 If you decompress the folder you will automatically get the folder structure
 describe in section `Getting the data and scripts to run the simulation`_
 
-You can download the file under the following link.
-   http://asampleurl.com
-
 If you want to download the raw data used in the simulation just go to the
 links described below. You can also find complementary information regarding
 this data in these web pages. 

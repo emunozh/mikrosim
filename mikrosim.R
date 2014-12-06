@@ -1,6 +1,6 @@
-#library(GREGWT)
-setwd("/home/esteban/workspace/R/GREGWT/src/")
-source("GREGWT.R")
+library(GREGWT)
+#setwd("/home/esteban/workspace/R/GREGWT/src/")
+#source("GREGWT.R")
 
 setwd("/home/esteban/Documents/MAPS/Germany")
 
@@ -195,7 +195,6 @@ plot(sort(heat),
      xlab="Sorted municipalities")
 abline(h=mean(heat, na.rm=TRUE), col='red', lw=3)
 dev.off()
-
 
 jpeg(filename="HeatExpenditureHist.jpeg", width=600, height=600)
 hist(heat, main="Histogram of heat expediture in German municipalities")
